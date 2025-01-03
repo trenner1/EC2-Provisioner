@@ -1,0 +1,123 @@
+---
+- name: Configure EC2 instance with ML tools and Anaconda (using /data)
+  hosts: all
+  become: true
+  tasks:
+    # Ensure /data directory exists
+    - name: Ensure /data exists
+      file:
+        path: /data
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    # Redirect apt cache to /data/apt-cache
+    - name: Redirect apt cache to /data
+      shell: |
+        mkdir -p /data/apt-cache
+        rsync -a /var/cache/apt/ /data/apt-cache/
+        rm -rf /var/cache/apt
+        ln -s /data/apt-cache /var/cache/apt
+      args:
+        creates: /data/apt-cache
+
+    # Install required system packages
+    - name: Install required system packages
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+          - curl
+          - wget
+          - docker.io
+        state: present
+      environment:
+        TMPDIR: /data/tmp
+
+    # Enable and start Docker
+    - name: Enable and start Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to Docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    # Redirect Docker storage to /data/docker
+    - name: Redirect Docker storage to /data
+      shell: |
+        mkdir -p /data/docker
+        systemctl stop docker
+        rsync -a /var/lib/docker/ /data/docker/
+        rm -rf /var/lib/docker
+        ln -s /data/docker /var/lib/docker
+        systemctl start docker
+      args:
+        creates: /data/docker
+
+    # Set TMPDIR to /data/tmp
+    - name: Ensure /data/tmp directory exists
+      file:
+        path: /data/tmp
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "1777"
+
+    - name: Set TMPDIR environment variable to /data/tmp
+      lineinfile:
+        path: /etc/environment
+        line: 'TMPDIR="/data/tmp"'
+        state: present
+
+    # Check if Anaconda is already installed
+    - name: Check if Anaconda is installed
+      stat:
+        path: /data/anaconda/bin/conda
+      register: anaconda_check
+
+    # Download Anaconda installer
+    - name: Download Anaconda installer
+      get_url:
+        url: "https://repo.anaconda.com/archive/Anaconda3-2023.07-1-Linux-x86_64.sh"
+        dest: "/data/tmp/Anaconda3.sh"
+        mode: "0755"
+      when: not anaconda_check.stat.exists
+
+    # Install Anaconda
+    - name: Install Anaconda to /data
+      command: bash /data/tmp/Anaconda3.sh -b -p /data/anaconda
+      args:
+        creates: /data/anaconda
+      when: not anaconda_check.stat.exists
+
+    # Update PATH to include Anaconda
+    - name: Add Anaconda to PATH for user
+      lineinfile:
+        path: /home/{{ ansible_user }}/.bashrc
+        line: 'export PATH="/data/anaconda/bin:$PATH"'
+        state: present
+
+    - name: Source updated PATH for Anaconda
+      shell: bash -c "source /home/{{ ansible_user }}/.bashrc"
+      args:
+        executable: /bin/bash
+
+    # Update PATH in .profile
+    - name: Add Anaconda to PATH in .profile
+      lineinfile:
+        path: /home/{{ ansible_user }}/.profile
+        line: 'export PATH="/data/anaconda/bin:$PATH"'
+        state: present
+
+    - name: Validate PATH includes Anaconda
+      shell: echo $PATH
+      register: path_output
+    - debug:
+        var: path_output.stdout
