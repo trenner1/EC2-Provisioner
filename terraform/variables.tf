@@ -47,7 +47,7 @@ variable "vpc_security_group_ids" {
 # EBS Variables
 ###############################################################################
 variable "volume_size_gb" {
-  type    = 
+  type    = number
   description = "The size of the EBS volume in GB"
   default = 100
 }
