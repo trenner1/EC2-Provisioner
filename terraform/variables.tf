@@ -4,13 +4,11 @@
 variable "region" {
   type        = string
   description = "The AWS Region to deploy resources to"
-  default     = "us-west-2"
 }
 
 variable "availability_zone" {
   type        = string
   description = "The AZ to deploy resources to"
-  default     = "us-west-2a"
 }
 
 variable "instance_type" {
@@ -22,60 +20,45 @@ variable "instance_type" {
 variable "ami_id" {
   type        = string
   description = "AMI ID for the EC2 Instance"
-  default     = "ami-05d38da78ce859165"
 }
-
-
-
 
 ###############################################################################
 # Authentication Variables
 ###############################################################################
-
 variable "key_name" {
   type        = string
-  description = "Name of the key pair used to access the ec2 instance"
-  default     = "AWSEC2"
+  description = "Name of the key pair used to access the EC2 instance"
 }
-
-variable "public_key_path" {
-  type        = string
-  description = "~/.ssh/AWSEC2.pem"
-}
-
 
 ###############################################################################
 # Networking and Security Variables
 ###############################################################################
-
 variable "subnet_id" {
   type        = string
-  description = "sthe subnet where the ec2 instance will be launched"
-  default     = "subnet-09730f4b4e65b78a2"
+  description = "The subnet where the EC2 instance will be launched"
 }
 
 variable "vpc_security_group_ids" {
-  type    = list(string)
-  default = ["sg-079c5ab6a7d39c4d1"]
+  type        = list(string)
+  description = "List of security group IDs to associate with the instance"
 }
 
 ###############################################################################
 # EBS Variables
 ###############################################################################
-
 variable "volume_size_gb" {
-  type    = number
+  type    = 
+  description = "The size of the EBS volume in GB"
   default = 100
 }
 
 variable "ebs_volume_id" {
   type        = string
-  description = "The ID of the existing ebs volume to attach to the ec2 instance"
-  default     = "vol-0be9bc0fd9a38c370"
+  description = "The ID of the existing EBS volume to attach to the EC2 instance"
 }
 
 variable "external_device" {
   type        = string
-  description = "the path name for the external volume"
+  description = "The path name for the external volume"
   default     = "/dev/xvdh"
 }

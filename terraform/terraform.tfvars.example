@@ -1,0 +1,17 @@
+# AWS Region and Availability Zone
+region            = "us-west-2" # Update with your desired AWS region
+availability_zone = "us-west-2a" # Update with your desired AZ
+
+# EC2 Instance Details
+ami_id           = "ami-xxxxxxxxxxxxxxxxx" # Replace with a valid AMI ID
+instance_type    = "t2.micro" # Update with the desired instance type
+key_name         = "your-key-name" # Replace with the name of your SSH key pair
+
+# Networking
+subnet_id           = "subnet-xxxxxxxx" # Replace with a valid subnet ID
+vpc_security_group_ids = ["sg-xxxxxxxx"] # Replace with valid security group IDs
+
+# EBS Volume Details
+volume_size_gb    = 100 # Default size of the EBS volume
+ebs_volume_id     = "vol-xxxxxxxx" # Replace with a valid EBS volume ID
+external_device   = "/dev/xvdh" # Device path for the attached volume
