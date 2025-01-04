@@ -24,6 +24,7 @@ This repository automates the provisioning of an EC2 instance with Terraform and
 - Terraform installed locally 🛠️ [Install Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 - Ansible installed locally 🤖 [How to install Ansible on MacOS](https://spacelift.io/blog/how-to-install-ansible#how-to-install-ansible-on-macos)
 - SSH key pair available locally in `~/.ssh` for accessing the EC2 instance 🔑 [Create a key pair for your Amazon EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html)
+- an EBS Volume created and the `ebs_volume_id` added to the varibales.tf file. Note that the ebs volume must be created in the same AZ as where you plan on launching your EC2 instance. 💾 [Create an Amazon EBS volume](https://docs.aws.amazon.com/ebs/latest/userguide/ebs-creating-volume.html)
 
 ---
 
@@ -59,7 +60,7 @@ cd <repository-directory>
 Run the main automation script:
 
 ```bash
-./run.sh
+./run.sh apply
 ```
 
 This will:

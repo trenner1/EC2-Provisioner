@@ -6,7 +6,7 @@ ROOT_DIR=$(dirname "$(readlink -f "$0")")
 # Set paths for Terraform and Ansible directories
 TF_DIR="$ROOT_DIR/terraform"
 ANSIBLE_DIR="$ROOT_DIR/ansible"
-PEM_FILE="AWSEC2.pem"
+PEM_FILE="~/.ssh/AWSEC2.pem"
 
 # Ensure an action argument is provided
 if [ "$#" -ne 1 ]; then
@@ -43,6 +43,7 @@ AWS_HOSTNAME="ec2-${INSTANCE_IP//./-}.us-west-2.compute.amazonaws.com"
 # Construct the formatted SSH command
 SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i \"$PEM_FILE\" ubuntu@$AWS_HOSTNAME"
 
+
   # Ensure Ansible directory exists and playbook is present
   if [ ! -d "$ANSIBLE_DIR" ] || [ ! -f "$ANSIBLE_DIR/playbook.yml" ]; then
     echo "Error: Ansible playbook or directory is missing in $ANSIBLE_DIR."
@@ -54,7 +55,7 @@ SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i \"$PEM_FILE\" ubuntu@$AWS_HOSTNA
   cd "$ANSIBLE_DIR" || exit
   cat > inventory <<EOF
 [ec2]
-$INSTANCE_IP ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/$PEM_FILE
+$INSTANCE_IP ansible_user=ubuntu ansible_ssh_private_key_file=$PEM_FILE
 EOF
 
   # Step 4: Run Ansible playbook
