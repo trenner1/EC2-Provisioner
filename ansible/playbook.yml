@@ -12,8 +12,56 @@
         group: "{{ ansible_user }}"
         mode: "0755"
 
+    # Check if /var/cache/apt exists and collect details
+    - name: Check if /var/cache/apt exists
+      stat:
+        path: /var/cache/apt
+      register: apt_cache_status
+
+    # Debug the properties of /var/cache/apt
+    - name: Debug /var/cache/apt properties
+      debug:
+        msg: "{{ apt_cache_status.stat }}"
+
+    # Remove /var/cache/apt if it is not a directory
+    - name: Remove /var/cache/apt if it is not a directory
+      command: rm -rf /var/cache/apt
+      when: apt_cache_status.stat.exists and not apt_cache_status.stat.isdir
+
+    # Ensure /var/cache/apt exists as a directory
+    - name: Ensure /var/cache/apt exists as a directory
+      file:
+        path: /var/cache/apt
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    # Ensure /var/cache/apt/archives exists
+    - name: Ensure /var/cache/apt/archives exists
+      file:
+        path: /var/cache/apt/archives
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    # Ensure /var/cache/apt/archives/partial exists
+    - name: Ensure /var/cache/apt/archives/partial exists
+      file:
+        path: /var/cache/apt/archives/partial
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    # Update apt cache
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
     # Redirect apt cache to /data/apt-cache
-    - name: Redirect apt cache to /data
+    - name: Redirect apt cache to /data/apt-cache
       shell: |
         mkdir -p /data/apt-cache
         rsync -a /var/cache/apt/ /data/apt-cache/
@@ -33,8 +81,7 @@
           - wget
           - docker.io
         state: present
-      environment:
-        TMPDIR: /data/tmp
+        update_cache: yes
 
     # Enable and start Docker
     - name: Enable and start Docker
@@ -76,6 +123,39 @@
         line: 'TMPDIR="/data/tmp"'
         state: present
 
+    # Check if Python virtual environment exists
+    - name: Check if Python virtual environment exists
+      stat:
+        path: /data/venv/bin/activate
+      register: venv_check
+
+    # Create Python virtual environment
+    - name: Create Python virtual environment
+      command: python3 -m venv /data/venv
+      args:
+        creates: /data/venv/bin/activate
+      when: not venv_check.stat.exists
+
+    # Install required Python packages in venv
+    - name: Install required Python packages in virtual environment
+      shell: |
+        source /data/venv/bin/activate
+        pip install mlflow flask numpy pandas scipy matplotlib seaborn scikit-learn jupyter
+      args:
+        executable: /bin/bash
+
+    # Update PATH to include the virtual environment
+    - name: Add virtual environment to PATH
+      lineinfile:
+        path: /home/{{ ansible_user }}/.bashrc
+        line: 'export PATH="/data/venv/bin:$PATH"'
+        state: present
+
+    - name: Source updated PATH
+      shell: bash -c "source /home/{{ ansible_user }}/.bashrc"
+      args:
+        executable: /bin/bash
+
     # Check if Anaconda is already installed
     - name: Check if Anaconda is installed
       stat:
@@ -108,16 +188,3 @@
       shell: bash -c "source /home/{{ ansible_user }}/.bashrc"
       args:
         executable: /bin/bash
-
-    # Update PATH in .profile
-    - name: Add Anaconda to PATH in .profile
-      lineinfile:
-        path: /home/{{ ansible_user }}/.profile
-        line: 'export PATH="/data/anaconda/bin:$PATH"'
-        state: present
-
-    - name: Validate PATH includes Anaconda
-      shell: echo $PATH
-      register: path_output
-    - debug:
-        var: path_output.stdout
