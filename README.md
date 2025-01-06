@@ -161,3 +161,11 @@ ansible/inventory
 
 - Ensure your AWS credentials are configured locally.
 - The SSH key referenced in the Terraform and Ansible configurations must exist in `~/.ssh`. 🔑
+
+---
+
+## Future Feature Additions
+
+- Key pair prompt and generation
+- option for verbosity
+- logging
