@@ -9,6 +9,7 @@ ANSIBLE_DIR="$ROOT_DIR/ansible"
 DEFAULT_PEM_DIR="${HOME}/.ssh/"
 DEFAULT_KEY_NAME="AWSEC2.pem"
 AWS_KEY_NAME="AWSEC2Key"
+DEFAULT_INSTANCE_TYPE="t2.micro"
 
 # Prompt for the PEM file directory
 read -p "Enter the directory containing your SSH keys (default: ${DEFAULT_PEM_DIR}): " PEM_FILE_DIR
@@ -90,6 +91,33 @@ remove_key_from_aws() {
   fi
 }
 
+# Prompt for instance size
+select_instance_size() {
+  echo "Select EC2 instance size:"
+  echo "1) t2.micro (default)"
+  echo "2) t2.small"
+  echo "3) t2.medium"
+  echo "4) t3.micro"
+  echo "5) t3.small"
+  read -p "Enter your choice [1-5]: " instance_choice
+
+  case $instance_choice in
+    2) INSTANCE_TYPE="t2.small" ;;
+    3) INSTANCE_TYPE="t2.medium" ;;
+    4) INSTANCE_TYPE="t3.micro" ;;
+    5) INSTANCE_TYPE="t3.small" ;;
+    *) INSTANCE_TYPE="$DEFAULT_INSTANCE_TYPE" ;; # Default
+  esac
+  echo "You selected instance type: $INSTANCE_TYPE"
+
+  # Update instance_type in terraform.tfvars
+  if grep -q '^instance_type' "$TF_DIR/terraform.tfvars"; then
+    sed -i.bak "s|^instance_type.*|instance_type = \"$INSTANCE_TYPE\"|" "$TF_DIR/terraform.tfvars"
+  else
+    echo "instance_type = \"$INSTANCE_TYPE\"" >> "$TF_DIR/terraform.tfvars"
+  fi
+}
+
 # Handle "destroy" operation
 if [[ $1 == "destroy" ]]; then
   # Step 1: Run Terraform destroy
@@ -107,12 +135,15 @@ if [[ $1 == "apply" || -z $1 ]]; then
   # Step 1: Upload SSH key to AWS
   upload_key_to_aws
 
-  # Step 2: Run Terraform apply
+  # Step 2: Prompt for instance size
+  select_instance_size
+
+  # Step 3: Run Terraform apply
   echo "Provisioning infrastructure with Terraform..."
   cd "$TF_DIR" || exit
   terraform apply -auto-approve || { echo "Terraform apply failed"; exit 1; }
 
-  # Step 3: Fetch the public IP from Terraform output
+  # Step 4: Fetch the public IP from Terraform output
   echo "Fetching instance public IP..."
   INSTANCE_IP=$(terraform output -raw instance_ip_addr 2>/dev/null)
   if [ -z "$INSTANCE_IP" ]; then
@@ -144,11 +175,11 @@ EOF
   # Construct the formatted SSH command
   SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i \"${PEM_FILE_DIR}${PEM_FILE}\" ubuntu@$AWS_HOSTNAME"
 
-  # Step 6: Output the formatted SSH command
+  # Step 7: Output the formatted SSH command
   echo "To connect to your instance using SSH, use the following command:"
   echo "$SSH_COMMAND"
 
-  # Step 7: Clean up (optional)
+  # Step 8: Clean up (optional)
   echo "Cleaning up..."
   rm -f inventory
 fi
