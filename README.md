@@ -10,6 +10,7 @@ This repository automates the provisioning of an EC2 instance with Terraform and
 
 - Infrastructure provisioning with Terraform
 - Automated instance configuration with Ansible
+- Instance type (size) selection
 - Installation of Anaconda and MLflow on the EC2 instance 🐍
 - Storage optimization by redirecting directories to `/data` 📦
 - Persistent `/data` volume is detached and reattached across destroy and apply cycles 🔄
@@ -159,13 +160,14 @@ ansible/inventory
 
 ## Notes 📝
 
-- Ensure your AWS credentials are configured locally.
-- The SSH key referenced in the Terraform and Ansible configurations must exist in `~/.ssh`. 🔑
+- You will be prompted for a key pair location and a key pair name. You can leave this to the default by pressing return and it will be provided as `~/.ssh/AWSEC2.pem`. In AWS it will be called `AWSEC2Key`
 
 ---
 
 ## Future Feature Additions
 
-- Key pair prompt and generation
+- Key pair prompt and generation :white_check_mark:
+- Instance type selection ability :white_check_mark:
 - option for verbosity
 - logging
+- windows and linux support
