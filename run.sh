@@ -88,6 +88,7 @@ select_instance_size() {
   fi
 }
 
+
 # ------------------------------------------------------------------
 # 2) Main Logic
 # ------------------------------------------------------------------
@@ -98,6 +99,14 @@ select_instance_size() {
 # --------------------------
 #
 if [[ $1 == "destroy" ]]; then
+  # Step 0: Prompt a warning before destroying
+  echo "WARNING: You are about to destroy your infrastructure!"
+  read -p "Are you sure you want to proceed? (yes/no): " confirm_destroy
+  if [[ ! $confirm_destroy =~ ^[Yy][Ee][Ss]$ ]]; then
+    echo "Destroy operation aborted."
+    exit 1
+  fi
+
   # Step 1: Run Terraform destroy
   echo "Destroying infrastructure with Terraform..."
   cd "$TF_DIR" || exit
@@ -128,6 +137,7 @@ if [[ $1 == "destroy" ]]; then
 
   exit 0
 fi
+
 
 #
 # --------------------------
@@ -197,7 +207,7 @@ if [[ $1 == "apply" || -z $1 ]]; then
     echo "Using key_name '$AWS_KEY_NAME' from terraform.tfvars"
   fi
 
-  # Step 1: Upload SSH key to AWS (using the name from tfvars or default)
+  # Step 1: Upload SSH key to AWS
   upload_key_to_aws "$AWS_KEY_NAME" "$PUB_KEY_FILE"
 
   # Step 2: Prompt for instance size
@@ -252,7 +262,7 @@ EOF
   echo "To connect to your instance using SSH, use the following command:"
   echo "$SSH_COMMAND"
 
-  # Step 8: Clean up (optional)
+  # Step 8: Clean up
   echo "Cleaning up..."
   rm -f inventory
 fi
