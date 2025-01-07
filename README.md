@@ -160,7 +160,8 @@ ansible/inventory
 
 ## Notes 📝
 
-- You will be prompted for a key pair location and a key pair name. You can leave this to the default by pressing return and it will be provided as `~/.ssh/AWSEC2.pem`. In AWS it will be called `AWSEC2Key`
+- You will be prompted for a key pair location and a key pair name. You can leave this to the default by pressing return and it will be provided as `~/.ssh/AWSEC2.pem`. In AWS it will be called `AWSEC2Key`.
+- Upon running `./run.sh destroy` the terraform destroy operation will run and at the end it will prompt you to verify if you would like to remove your public key from AWS.
 
 ---
 
@@ -171,3 +172,5 @@ ansible/inventory
 - option for verbosity
 - logging
 - windows and linux support
+- quota and spending alerts with monitoring
+- instance telemetry to provide 'right-size' feedback for the instance
