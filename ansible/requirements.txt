@@ -1,4 +1,4 @@
-mlflow
+mlflow=2.20.0
 flask
 scikit-learn
 xgboost
