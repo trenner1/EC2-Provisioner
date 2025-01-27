@@ -13,6 +13,7 @@
 name: Snyk Infrastructure as Code
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
   pull_request:
@@ -20,7 +21,7 @@ on:
     branches: [ "main" ]
   schedule:
     - cron: '31 23 * * 4'
-  workflow-dispatch:
+  
 
 permissions:
   contents: read
